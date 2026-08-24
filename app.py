@@ -4,10 +4,11 @@ import numpy as np
 from PIL import Image
 from datetime import datetime
 
-# ============================================
-# 🖼️ AI Image Classification System
+
+# ============================================================
+# 🖼️ AI IMAGE CLASSIFICATION SYSTEM
 # 👩‍💻 Author: Tehmina Anwar
-# ============================================
+# ============================================================
 
 st.set_page_config(
     page_title="AI Image Classification System",
@@ -15,44 +16,93 @@ st.set_page_config(
     layout="wide"
 )
 
-# ============================================
-# Load Pre-trained CNN Model
-# ============================================
 
-@st.cache_resource
+# ============================================================
+# 🎨 HEADER
+# ============================================================
+
+st.title("🖼️ AI Image Classification System")
+
+st.subheader("👩‍💻 Developed by Tehmina Anwar")
+
+st.write(
+    "Upload an image or use your camera to identify objects "
+    "using a pre-trained CNN model."
+)
+
+st.divider()
+
+
+# ============================================================
+# 🤖 LOAD MOBILE NET V2 MODEL
+# ============================================================
+
+@st.cache_resource(show_spinner="🤖 Loading AI model...")
 def load_model():
-    return tf.keras.applications.MobileNetV2(
-        weights="imagenet"
+
+    model = tf.keras.applications.MobileNetV2(
+        weights="imagenet",
+        include_top=True
     )
 
-model = load_model()
+    return model
 
-# ============================================
-# Session History
-# ============================================
+
+try:
+
+    model = load_model()
+
+    model_status = True
+
+except Exception as e:
+
+    model = None
+    model_status = False
+
+    st.error(
+        "❌ AI model could not be loaded."
+    )
+
+    st.info(
+        "Please check the Streamlit deployment logs."
+    )
+
+
+# ============================================================
+# 📜 SESSION HISTORY
+# ============================================================
 
 if "history" not in st.session_state:
+
     st.session_state.history = []
 
 
-# ============================================
-# Image Classification Function
-# ============================================
+# ============================================================
+# 🔍 IMAGE CLASSIFICATION FUNCTION
+# ============================================================
 
 def classify_image(image):
 
     image = image.convert("RGB")
-    image = image.resize((224, 224))
 
-    img_array = np.array(image)
+    image = image.resize(
+        (224, 224)
+    )
+
+    img_array = np.array(
+        image,
+        dtype=np.float32
+    )
 
     img_array = np.expand_dims(
         img_array,
         axis=0
     )
 
-    img_array = tf.keras.applications.mobilenet_v2.preprocess_input(
-        img_array
+    img_array = (
+        tf.keras.applications
+        .mobilenet_v2
+        .preprocess_input(img_array)
     )
 
     predictions = model.predict(
@@ -60,17 +110,21 @@ def classify_image(image):
         verbose=0
     )
 
-    decoded = tf.keras.applications.mobilenet_v2.decode_predictions(
-        predictions,
-        top=3
-    )[0]
+    decoded = (
+        tf.keras.applications
+        .mobilenet_v2
+        .decode_predictions(
+            predictions,
+            top=3
+        )[0]
+    )
 
     return decoded
 
 
-# ============================================
-# Save Prediction History
-# ============================================
+# ============================================================
+# 💾 SAVE PREDICTION HISTORY
+# ============================================================
 
 def save_prediction(
     source,
@@ -78,51 +132,30 @@ def save_prediction(
     confidence
 ):
 
-    st.session_state.history.append({
+    st.session_state.history.append(
+        {
+            "Time": datetime.now().strftime(
+                "%Y-%m-%d %H:%M:%S"
+            ),
 
-        "Time": datetime.now().strftime(
-            "%Y-%m-%d %H:%M:%S"
-        ),
+            "Source": source,
 
-        "Source": source,
+            "Prediction": prediction,
 
-        "Prediction": prediction,
-
-        "Confidence": f"{confidence:.2f}%"
-    })
-
-
-# ============================================
-# HEADER
-# ============================================
-
-st.title(
-    "🖼️ AI Image Classification System"
-)
-
-st.subheader(
-    "👩‍💻 Developed by Tehmina Anwar"
-)
-
-st.write(
-    "Upload an image or use your camera to identify "
-    "objects using a pre-trained CNN model."
-)
-
-st.divider()
+            "Confidence": f"{confidence:.2f}%"
+        }
+    )
 
 
-# ============================================
-# SIDEBAR
-# ============================================
+# ============================================================
+# ⚙️ SIDEBAR
+# ============================================================
 
-st.sidebar.title(
-    "⚙️ Options"
-)
+st.sidebar.title("⚙️ Options")
 
-st.sidebar.info(
+st.sidebar.markdown(
     """
-### Features
+### ✨ Features
 
 📤 Image Upload
 
@@ -134,11 +167,13 @@ st.sidebar.info(
 
 🏆 Top 3 Predictions
 
-📜 History Tracking
+📜 Prediction History
 
 📈 Result Dashboard
 
-### Technology
+---
+
+### 🛠️ Technology
 
 🐍 Python
 
@@ -147,16 +182,26 @@ st.sidebar.info(
 🔬 CNN
 
 👁️ Computer Vision
+
+🎈 Streamlit
+
+---
+
+### 🤖 Model
+
+**MobileNetV2**
+
+**Dataset:** ImageNet
 """
 )
 
 
-# ============================================
-# IMAGE SOURCE
-# ============================================
+# ============================================================
+# 📷 IMAGE SOURCE
+# ============================================================
 
 input_method = st.radio(
-    "Choose Image Source",
+    "📷 Choose Image Source",
     [
         "📤 Upload Image",
         "📷 Camera"
@@ -165,14 +210,18 @@ input_method = st.radio(
 )
 
 
-# ============================================
-# IMAGE UPLOAD
-# ============================================
+# ============================================================
+# 📤 UPLOAD IMAGE
+# ============================================================
 
 if input_method == "📤 Upload Image":
 
+    st.subheader(
+        "📤 Upload an Image"
+    )
+
     uploaded_file = st.file_uploader(
-        "📤 Upload an Image",
+        "Choose an image",
         type=[
             "jpg",
             "jpeg",
@@ -186,11 +235,13 @@ if input_method == "📤 Upload Image":
             uploaded_file
         ).convert("RGB")
 
-        col1, col2 = st.columns(2)
+        col1, col2 = st.columns(
+            2
+        )
 
-        # ----------------------------
-        # Image
-        # ----------------------------
+        # ----------------------------------------------------
+        # IMAGE PREVIEW
+        # ----------------------------------------------------
 
         with col1:
 
@@ -203,9 +254,13 @@ if input_method == "📤 Upload Image":
                 use_container_width=True
             )
 
-        # ----------------------------
-        # Prediction
-        # ----------------------------
+            st.caption(
+                f"File: {uploaded_file.name}"
+            )
+
+        # ----------------------------------------------------
+        # AI PREDICTION
+        # ----------------------------------------------------
 
         with col2:
 
@@ -213,88 +268,119 @@ if input_method == "📤 Upload Image":
                 "🤖 AI Prediction"
             )
 
-            if st.button(
-                "🔍 Classify Image",
-                use_container_width=True
-            ):
+            if model_status:
 
-                with st.spinner(
-                    "🤖 AI is analyzing the image..."
-                ):
+                classify_button = st.button(
+                    "🔍 Classify Image",
+                    use_container_width=True
+                )
 
-                    decoded = classify_image(
-                        image
+                if classify_button:
+
+                    with st.spinner(
+                        "🤖 AI is analyzing the image..."
+                    ):
+
+                        decoded = classify_image(
+                            image
+                        )
+
+                    st.success(
+                        "✅ Classification Complete!"
                     )
 
-                st.success(
-                    "✅ Classification Complete!"
-                )
+                    # Best Prediction
+                    label = decoded[0][1]
 
-                # Best prediction
-
-                label = decoded[0][1]
-
-                confidence = (
-                    decoded[0][2] * 100
-                )
-
-                st.metric(
-                    "🎯 Predicted Class",
-                    label.replace(
-                        "_",
-                        " "
-                    ).title()
-                )
-
-                st.metric(
-                    "📊 Confidence",
-                    f"{confidence:.2f}%"
-                )
-
-                # ----------------------------
-                # Top 3 Predictions
-                # ----------------------------
-
-                st.subheader(
-                    "🏆 Top 3 Predictions"
-                )
-
-                for rank, (_, name, score) in enumerate(
-                    decoded,
-                    start=1
-                ):
-
-                    st.write(
-                        f"**{rank}. "
-                        f"{name.replace('_', ' ').title()}**"
+                    confidence = (
+                        decoded[0][2] * 100
                     )
 
-                    st.progress(
-                        float(score)
+                    display_label = (
+                        label
+                        .replace("_", " ")
+                        .title()
                     )
 
-                    st.write(
-                        f"Confidence: "
-                        f"{score * 100:.2f}%"
+                    # ------------------------------------------------
+                    # METRICS
+                    # ------------------------------------------------
+
+                    metric_col1, metric_col2 = st.columns(
+                        2
                     )
 
-                # ----------------------------
-                # Save History
-                # ----------------------------
+                    with metric_col1:
 
-                save_prediction(
-                    uploaded_file.name,
-                    label.replace(
-                        "_",
-                        " "
-                    ).title(),
-                    confidence
+                        st.metric(
+                            "🎯 Predicted Class",
+                            display_label
+                        )
+
+                    with metric_col2:
+
+                        st.metric(
+                            "📊 Confidence",
+                            f"{confidence:.2f}%"
+                        )
+
+                    # ------------------------------------------------
+                    # TOP 3
+                    # ------------------------------------------------
+
+                    st.subheader(
+                        "🏆 Top 3 Predictions"
+                    )
+
+                    for rank, (_, name, score) in enumerate(
+                        decoded,
+                        start=1
+                    ):
+
+                        formatted_name = (
+                            name
+                            .replace("_", " ")
+                            .title()
+                        )
+
+                        percentage = (
+                            score * 100
+                        )
+
+                        st.write(
+                            f"**{rank}. "
+                            f"{formatted_name}**"
+                        )
+
+                        st.progress(
+                            float(score)
+                        )
+
+                        st.caption(
+                            f"Confidence: "
+                            f"{percentage:.2f}%"
+                        )
+
+                    # ------------------------------------------------
+                    # SAVE HISTORY
+                    # ------------------------------------------------
+
+                    save_prediction(
+                        uploaded_file.name,
+                        display_label,
+                        confidence
+                    )
+
+            else:
+
+                st.warning(
+                    "⚠️ AI model is currently unavailable."
                 )
 
 
-# ============================================
-# CAMERA DETECTION
-# ============================================
+# ============================================================
+# 📷 CAMERA DETECTION
+# ============================================================
 
 else:
 
@@ -323,92 +409,116 @@ else:
             use_container_width=True
         )
 
-        if st.button(
-            "🤖 Classify Camera Image",
-            use_container_width=True
-        ):
+        if model_status:
 
-            with st.spinner(
-                "🤖 AI is analyzing the camera image..."
+            if st.button(
+                "🤖 Classify Camera Image",
+                use_container_width=True
             ):
 
-                decoded = classify_image(
-                    image
+                with st.spinner(
+                    "🤖 AI is analyzing the camera image..."
+                ):
+
+                    decoded = classify_image(
+                        image
+                    )
+
+                st.success(
+                    "✅ Camera Image Classified!"
                 )
 
-            st.success(
-                "✅ Camera Image Classified!"
+                label = decoded[0][1]
+
+                confidence = (
+                    decoded[0][2] * 100
+                )
+
+                display_label = (
+                    label
+                    .replace("_", " ")
+                    .title()
+                )
+
+                # ------------------------------------------------
+                # METRICS
+                # ------------------------------------------------
+
+                col1, col2 = st.columns(
+                    2
+                )
+
+                with col1:
+
+                    st.metric(
+                        "🎯 Predicted Class",
+                        display_label
+                    )
+
+                with col2:
+
+                    st.metric(
+                        "📊 Confidence",
+                        f"{confidence:.2f}%"
+                    )
+
+                # ------------------------------------------------
+                # TOP 3
+                # ------------------------------------------------
+
+                st.subheader(
+                    "🏆 Top 3 Predictions"
+                )
+
+                for rank, (_, name, score) in enumerate(
+                    decoded,
+                    start=1
+                ):
+
+                    formatted_name = (
+                        name
+                        .replace("_", " ")
+                        .title()
+                    )
+
+                    percentage = (
+                        score * 100
+                    )
+
+                    st.write(
+                        f"**{rank}. "
+                        f"{formatted_name}**"
+                    )
+
+                    st.progress(
+                        float(score)
+                    )
+
+                    st.caption(
+                        f"Confidence: "
+                        f"{percentage:.2f}%"
+                    )
+
+                # ------------------------------------------------
+                # SAVE HISTORY
+                # ------------------------------------------------
+
+                save_prediction(
+                    "Camera Image",
+                    display_label,
+                    confidence
+                )
+
+        else:
+
+            st.warning(
+                "⚠️ AI model is currently unavailable."
             )
 
-            label = decoded[0][1]
 
-            confidence = (
-                decoded[0][2] * 100
-            )
-
-            col1, col2 = st.columns(2)
-
-            with col1:
-
-                st.metric(
-                    "🎯 Predicted Class",
-                    label.replace(
-                        "_",
-                        " "
-                    ).title()
-                )
-
-            with col2:
-
-                st.metric(
-                    "📊 Confidence",
-                    f"{confidence:.2f}%"
-                )
-
-            # ----------------------------
-            # Top 3 Camera Predictions
-            # ----------------------------
-
-            st.subheader(
-                "🏆 Top 3 Predictions"
-            )
-
-            for rank, (_, name, score) in enumerate(
-                decoded,
-                start=1
-            ):
-
-                st.write(
-                    f"**{rank}. "
-                    f"{name.replace('_', ' ').title()}**"
-                )
-
-                st.progress(
-                    float(score)
-                )
-
-                st.write(
-                    f"Confidence: "
-                    f"{score * 100:.2f}%"
-                )
-
-            # ----------------------------
-            # Save Camera History
-            # ----------------------------
-
-            save_prediction(
-                "Camera Image",
-                label.replace(
-                    "_",
-                    " "
-                ).title(),
-                confidence
-            )
-
-
-# ============================================
-# PREDICTION HISTORY
-# ============================================
+# ============================================================
+# 📜 PREDICTION HISTORY
+# ============================================================
 
 st.divider()
 
@@ -430,16 +540,16 @@ else:
     ):
 
         st.write(
-            f"🕒 **{item['Time']}** | "
-            f"📷 {item['Source']} | "
-            f"🎯 {item['Prediction']} | "
+            f"🕒 **{item['Time']}**  |  "
+            f"📷 {item['Source']}  |  "
+            f"🎯 {item['Prediction']}  |  "
             f"📊 {item['Confidence']}"
         )
 
 
-# ============================================
-# RESULT DASHBOARD
-# ============================================
+# ============================================================
+# 📊 RESULT DASHBOARD
+# ============================================================
 
 st.divider()
 
@@ -451,9 +561,14 @@ total_predictions = len(
     st.session_state.history
 )
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3 = st.columns(
+    3
+)
 
-# Total
+
+# ------------------------------------------------------------
+# TOTAL PREDICTIONS
+# ------------------------------------------------------------
 
 with col1:
 
@@ -462,7 +577,10 @@ with col1:
         total_predictions
     )
 
-# Last Prediction
+
+# ------------------------------------------------------------
+# LAST PREDICTION
+# ------------------------------------------------------------
 
 with col2:
 
@@ -482,7 +600,10 @@ with col2:
             "None"
         )
 
-# Last Confidence
+
+# ------------------------------------------------------------
+# LAST CONFIDENCE
+# ------------------------------------------------------------
 
 with col3:
 
@@ -503,9 +624,9 @@ with col3:
         )
 
 
-# ============================================
-# PROJECT INFORMATION
-# ============================================
+# ============================================================
+# ℹ️ PROJECT INFORMATION
+# ============================================================
 
 st.divider()
 
@@ -513,40 +634,200 @@ st.header(
     "ℹ️ Project Information"
 )
 
-info_col1, info_col2 = st.columns(2)
+info_col1, info_col2 = st.columns(
+    2
+)
 
 with info_col1:
 
-    st.write(
+    st.markdown(
         """
-**Project:** AI Image Classification System
+**📌 Project:**  
+AI Image Classification System
 
-**Developer:** Tehmina Anwar
+**👩‍💻 Developer:**  
+Tehmina Anwar
 
-**Model:** MobileNetV2
+**🤖 Model:**  
+MobileNetV2
 
-**Dataset:** ImageNet
+**📚 Dataset:**  
+ImageNet
 """
     )
 
 with info_col2:
 
-    st.write(
+    st.markdown(
         """
-**Framework:** TensorFlow
+**🧠 Framework:**  
+TensorFlow
 
-**Interface:** Streamlit
+**🎈 Interface:**  
+Streamlit
 
-**Computer Vision:** CNN
+**👁️ Computer Vision:**  
+CNN
 
-**Classification:** Top-3 Predictions
+**🏆 Classification:**  
+Top-3 Predictions
 """
     )
 
 
-# ============================================
-# FOOTER
-# ============================================
+# ============================================================
+# 🎓 PROJECT OBJECTIVES
+# ============================================================
+
+st.divider()
+
+st.header(
+    "🎯 Project Objectives"
+)
+
+objectives = [
+    "🤖 Implement image classification using a pre-trained CNN",
+    "🧠 Use MobileNetV2 for object recognition",
+    "📷 Support image upload and camera input",
+    "📊 Display prediction confidence",
+    "🏆 Show Top-3 predictions",
+    "📜 Maintain prediction history",
+    "📈 Provide a simple result dashboard",
+    "🎈 Build an interactive Streamlit application"
+]
+
+for objective in objectives:
+
+    st.write(
+        f"• {objective}"
+    )
+
+
+# ============================================================
+# 💡 WHAT I LEARNED
+# ============================================================
+
+st.divider()
+
+st.header(
+    "💡 What I Learned"
+)
+
+st.write(
+    """
+Through this project, I gained practical experience in:
+
+🐍 Python development  
+🧠 TensorFlow  
+🔬 Convolutional Neural Networks  
+👁️ Computer Vision  
+🤖 MobileNetV2  
+📊 Image classification  
+📷 Camera-based AI applications  
+🎈 Streamlit development  
+☁️ AI application deployment
+"""
+)
+
+
+# ============================================================
+# 🔮 FUTURE IMPROVEMENTS
+# ============================================================
+
+st.divider()
+
+st.header(
+    "🔮 Future Improvements"
+)
+
+future_features = [
+    "🧠 Custom-trained image classification model",
+    "📊 Custom dataset support",
+    "🎯 More classification categories",
+    "📷 Continuous camera detection",
+    "📈 Advanced analytics",
+    "💾 Export prediction history",
+    "📱 Mobile-friendly interface",
+    "☁️ Improved cloud deployment"
+]
+
+for feature in future_features:
+
+    st.write(
+        f"• {feature}"
+    )
+
+
+# ============================================================
+# 👩‍💻 ABOUT DEVELOPER
+# ============================================================
+
+st.divider()
+
+st.header(
+    "👩‍💻 About Me"
+)
+
+st.subheader(
+    "Tehmina Anwar"
+)
+
+st.write(
+    """
+**BSAI Student | AI/ML Engineer | Python Developer**
+
+I am a Bachelor of Science in Artificial Intelligence student
+interested in building practical applications using Artificial
+Intelligence, Machine Learning, Generative AI, Natural Language
+Processing, and Computer Vision.
+"""
+)
+
+st.write(
+    "**🌟 Areas of Interest**"
+)
+
+st.write(
+    """
+🐍 Python  
+🤖 Machine Learning  
+🧠 Generative AI  
+💬 Large Language Models  
+🔎 Retrieval-Augmented Generation  
+📝 Natural Language Processing  
+👁️ Computer Vision  
+🚀 AI Application Development
+"""
+)
+
+
+# ============================================================
+# 🔗 LINKS
+# ============================================================
+
+st.divider()
+
+st.header(
+    "🔗 Connect With Me"
+)
+
+st.markdown(
+    """
+💻 **GitHub:**  
+https://github.com/Tehmina124
+
+🔗 **LinkedIn:**  
+https://www.linkedin.com/in/tehmina-anwar-77b8a8414/
+
+🌐 **Portfolio:**  
+https://tehmina-portfolio-five.vercel.app/
+"""
+)
+
+
+# ============================================================
+# 👩‍💻 FOOTER
+# ============================================================
 
 st.divider()
 
@@ -558,4 +839,8 @@ st.caption(
 st.caption(
     "🖼️ AI Image Classification System | "
     "Python • TensorFlow • CNN • Computer Vision"
+)
+
+st.caption(
+    "© 2026 Tehmina Anwar"
 )
