@@ -7,7 +7,7 @@ from datetime import datetime
 
 # ============================================================
 # 🖼️ AI IMAGE CLASSIFICATION SYSTEM
-# 👩‍💻 Author: Tehmina Anwar
+# 👩‍💻 Developed by: Tehmina Anwar
 # ============================================================
 
 st.set_page_config(
@@ -18,12 +18,64 @@ st.set_page_config(
 
 
 # ============================================================
-# 🎨 HEADER
+# 🎨 CUSTOM STYLE
 # ============================================================
 
-st.title("🖼️ AI Image Classification System")
+st.markdown(
+    """
+    <style>
 
-st.subheader("👩‍💻 Developed by Tehmina Anwar")
+    .main-title {
+        text-align: center;
+        font-size: 42px;
+        font-weight: 700;
+        margin-bottom: 5px;
+    }
+
+    .subtitle {
+        text-align: center;
+        font-size: 18px;
+        margin-bottom: 25px;
+    }
+
+    .result-box {
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid rgba(128,128,128,0.3);
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    .prediction-title {
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    .footer {
+        text-align: center;
+        padding: 20px;
+        font-size: 14px;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
+# ============================================================
+# 🖼️ HEADER
+# ============================================================
+
+st.markdown(
+    '<div class="main-title">🖼️ AI Image Classification System</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '<div class="subtitle">👩‍💻 Developed by Tehmina Anwar</div>',
+    unsafe_allow_html=True
+)
 
 st.write(
     "Upload an image or use your camera to identify objects "
@@ -34,7 +86,7 @@ st.divider()
 
 
 # ============================================================
-# 🤖 LOAD MOBILE NET V2 MODEL
+# 🤖 LOAD MOBILENETV2 MODEL
 # ============================================================
 
 @st.cache_resource(show_spinner="🤖 Loading AI model...")
@@ -51,7 +103,6 @@ def load_model():
 try:
 
     model = load_model()
-
     model_status = True
 
 except Exception as e:
@@ -59,12 +110,10 @@ except Exception as e:
     model = None
     model_status = False
 
-    st.error(
-        "❌ AI model could not be loaded."
-    )
+    st.error("❌ AI model could not be loaded.")
 
     st.info(
-        "Please check the Streamlit deployment logs."
+        "Please check your Streamlit deployment logs."
     )
 
 
@@ -85,9 +134,7 @@ def classify_image(image):
 
     image = image.convert("RGB")
 
-    image = image.resize(
-        (224, 224)
-    )
+    image = image.resize((224, 224))
 
     img_array = np.array(
         image,
@@ -100,8 +147,7 @@ def classify_image(image):
     )
 
     img_array = (
-        tf.keras.applications
-        .mobilenet_v2
+        tf.keras.applications.mobilenet_v2
         .preprocess_input(img_array)
     )
 
@@ -111,8 +157,7 @@ def classify_image(image):
     )
 
     decoded = (
-        tf.keras.applications
-        .mobilenet_v2
+        tf.keras.applications.mobilenet_v2
         .decode_predictions(
             predictions,
             top=3
@@ -137,11 +182,8 @@ def save_prediction(
             "Time": datetime.now().strftime(
                 "%Y-%m-%d %H:%M:%S"
             ),
-
             "Source": source,
-
             "Prediction": prediction,
-
             "Confidence": f"{confidence:.2f}%"
         }
     )
@@ -216,9 +258,7 @@ input_method = st.radio(
 
 if input_method == "📤 Upload Image":
 
-    st.subheader(
-        "📤 Upload an Image"
-    )
+    st.subheader("📤 Upload an Image")
 
     uploaded_file = st.file_uploader(
         "Choose an image",
@@ -235,9 +275,7 @@ if input_method == "📤 Upload Image":
             uploaded_file
         ).convert("RGB")
 
-        col1, col2 = st.columns(
-            2
-        )
+        col1, col2 = st.columns(2)
 
         # ----------------------------------------------------
         # IMAGE PREVIEW
@@ -245,9 +283,7 @@ if input_method == "📤 Upload Image":
 
         with col1:
 
-            st.subheader(
-                "📷 Uploaded Image"
-            )
+            st.subheader("📷 Uploaded Image")
 
             st.image(
                 image,
@@ -264,9 +300,7 @@ if input_method == "📤 Upload Image":
 
         with col2:
 
-            st.subheader(
-                "🤖 AI Prediction"
-            )
+            st.subheader("🤖 AI Prediction")
 
             if model_status:
 
@@ -289,7 +323,10 @@ if input_method == "📤 Upload Image":
                         "✅ Classification Complete!"
                     )
 
-                    # Best Prediction
+                    # ------------------------------------------------
+                    # BEST PREDICTION
+                    # ------------------------------------------------
+
                     label = decoded[0][1]
 
                     confidence = (
@@ -303,29 +340,33 @@ if input_method == "📤 Upload Image":
                     )
 
                     # ------------------------------------------------
-                    # METRICS
+                    # RESULT
                     # ------------------------------------------------
 
-                    metric_col1, metric_col2 = st.columns(
-                        2
-                    )
+                    result_col1, result_col2 = st.columns(2)
 
-                    with metric_col1:
+                    with result_col1:
 
-                        st.metric(
-                            "🎯 Predicted Class",
-                            display_label
+                        st.info(
+                            f"""
+                            🎯 **Predicted Class**
+
+                            ## {display_label}
+                            """
                         )
 
-                    with metric_col2:
+                    with result_col2:
 
-                        st.metric(
-                            "📊 Confidence",
-                            f"{confidence:.2f}%"
+                        st.success(
+                            f"""
+                            📊 **Confidence**
+
+                            ## {confidence:.2f}%
+                            """
                         )
 
                     # ------------------------------------------------
-                    # TOP 3
+                    # TOP 3 PREDICTIONS
                     # ------------------------------------------------
 
                     st.subheader(
@@ -348,8 +389,7 @@ if input_method == "📤 Upload Image":
                         )
 
                         st.write(
-                            f"**{rank}. "
-                            f"{formatted_name}**"
+                            f"**{rank}. {formatted_name}**"
                         )
 
                         st.progress(
@@ -385,7 +425,7 @@ if input_method == "📤 Upload Image":
 else:
 
     st.subheader(
-        "📷 Real-Time Camera Detection"
+        "📷 Camera Detection"
     )
 
     st.write(
@@ -411,10 +451,12 @@ else:
 
         if model_status:
 
-            if st.button(
+            camera_button = st.button(
                 "🤖 Classify Camera Image",
                 use_container_width=True
-            ):
+            )
+
+            if camera_button:
 
                 with st.spinner(
                     "🤖 AI is analyzing the camera image..."
@@ -427,6 +469,10 @@ else:
                 st.success(
                     "✅ Camera Image Classified!"
                 )
+
+                # ------------------------------------------------
+                # BEST PREDICTION
+                # ------------------------------------------------
 
                 label = decoded[0][1]
 
@@ -441,25 +487,29 @@ else:
                 )
 
                 # ------------------------------------------------
-                # METRICS
+                # RESULT
                 # ------------------------------------------------
 
-                col1, col2 = st.columns(
-                    2
-                )
+                result_col1, result_col2 = st.columns(2)
 
-                with col1:
+                with result_col1:
 
-                    st.metric(
-                        "🎯 Predicted Class",
-                        display_label
+                    st.info(
+                        f"""
+                        🎯 **Predicted Class**
+
+                        ## {display_label}
+                        """
                     )
 
-                with col2:
+                with result_col2:
 
-                    st.metric(
-                        "📊 Confidence",
-                        f"{confidence:.2f}%"
+                    st.success(
+                        f"""
+                        📊 **Confidence**
+
+                        ## {confidence:.2f}%
+                        """
                     )
 
                 # ------------------------------------------------
@@ -486,8 +536,7 @@ else:
                     )
 
                     st.write(
-                        f"**{rank}. "
-                        f"{formatted_name}**"
+                        f"**{rank}. {formatted_name}**"
                     )
 
                     st.progress(
@@ -546,6 +595,18 @@ else:
             f"📊 {item['Confidence']}"
         )
 
+    # ------------------------------------------------------------
+    # CLEAR HISTORY
+    # ------------------------------------------------------------
+
+    if st.button(
+        "🗑️ Clear Prediction History"
+    ):
+
+        st.session_state.history = []
+
+        st.rerun()
+
 
 # ============================================================
 # 📊 RESULT DASHBOARD
@@ -561,20 +622,21 @@ total_predictions = len(
     st.session_state.history
 )
 
-col1, col2, col3 = st.columns(
-    3
-)
+dash_col1, dash_col2, dash_col3 = st.columns(3)
 
 
 # ------------------------------------------------------------
 # TOTAL PREDICTIONS
 # ------------------------------------------------------------
 
-with col1:
+with dash_col1:
 
-    st.metric(
-        "🔢 Total Predictions",
-        total_predictions
+    st.info(
+        f"""
+        ### 🔢 Total Predictions
+
+        ## {total_predictions}
+        """
     )
 
 
@@ -582,22 +644,30 @@ with col1:
 # LAST PREDICTION
 # ------------------------------------------------------------
 
-with col2:
+with dash_col2:
 
     if total_predictions > 0:
 
-        st.metric(
-            "🎯 Last Prediction",
-            st.session_state.history[-1][
-                "Prediction"
-            ]
+        last_prediction = (
+            st.session_state.history[-1]["Prediction"]
+        )
+
+        st.info(
+            f"""
+            ### 🎯 Last Prediction
+
+            **{last_prediction}**
+            """
         )
 
     else:
 
-        st.metric(
-            "🎯 Last Prediction",
-            "None"
+        st.info(
+            """
+            ### 🎯 Last Prediction
+
+            **None**
+            """
         )
 
 
@@ -605,22 +675,30 @@ with col2:
 # LAST CONFIDENCE
 # ------------------------------------------------------------
 
-with col3:
+with dash_col3:
 
     if total_predictions > 0:
 
-        st.metric(
-            "📊 Last Confidence",
-            st.session_state.history[-1][
-                "Confidence"
-            ]
+        last_confidence = (
+            st.session_state.history[-1]["Confidence"]
+        )
+
+        st.info(
+            f"""
+            ### 📊 Last Confidence
+
+            **{last_confidence}**
+            """
         )
 
     else:
 
-        st.metric(
-            "📊 Last Confidence",
-            "0%"
+        st.info(
+            """
+            ### 📊 Last Confidence
+
+            **0%**
+            """
         )
 
 
@@ -634,9 +712,7 @@ st.header(
     "ℹ️ Project Information"
 )
 
-info_col1, info_col2 = st.columns(
-    2
-)
+info_col1, info_col2 = st.columns(2)
 
 with info_col1:
 
@@ -676,7 +752,7 @@ Top-3 Predictions
 
 
 # ============================================================
-# 🎓 PROJECT OBJECTIVES
+# 🎯 PROJECT OBJECTIVES
 # ============================================================
 
 st.divider()
@@ -759,7 +835,7 @@ for feature in future_features:
 
 
 # ============================================================
-# 👩‍💻 ABOUT DEVELOPER
+# 👩‍💻 ABOUT ME
 # ============================================================
 
 st.divider()
@@ -802,7 +878,7 @@ st.write(
 
 
 # ============================================================
-# 🔗 LINKS
+# 🔗 CONNECT WITH ME
 # ============================================================
 
 st.divider()
